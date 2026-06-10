@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevOS — AI Developer Growth OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root {
+    --bg-void: #020408;
+    --bg-deep: #060c14;
+    --bg-surface: #0a1220;
+    --bg-elevated: #0f1a2e;
+    --bg-card: rgba(15,26,46,0.7);
+    --border: rgba(99,179,237,0.1);
+    --border-bright: rgba(99,179,237,0.25);
+    --text-primary: #e8f4fd;
+    --text-secondary: #7fa8c9;
+    --text-muted: #3d6080;
+    --accent-blue: #3b9eff;
+    --accent-cyan: #00d4ff;
+    --accent-violet: #8b5cf6;
+    --accent-emerald: #10d98a;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --glow-blue: rgba(59,158,255,0.15);
+    --glow-violet: rgba(139,92,246,0.15);
+    --glow-cyan: rgba(0,212,255,0.1);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 2px; }
+
+  /* === AURORA BACKGROUND === */
+  .aurora {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .aurora::before {
+    content: '';
+    position: absolute;
+    width: 800px; height: 800px;
+    top: -200px; left: -100px;
+    background: radial-gradient(circle, rgba(59,158,255,0.08) 0%, transparent 70%);
+    animation: aurora1 12s ease-in-out infinite alternate;
+  }
+  .aurora::after {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    bottom: -100px; right: -100px;
+    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%);
+    animation: aurora2 15s ease-in-out infinite alternate;
+  }
+  @keyframes aurora1 {
+    0% { transform: translate(0,0) scale(1); }
+    100% { transform: translate(200px,100px) scale(1.3); }
+  }
+  @keyframes aurora2 {
+    0% { transform: translate(0,0) scale(1); }
+    100% { transform: translate(-150px,-100px) scale(1.2); }
+  }
+
+  /* === GRID OVERLAY === */
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(59,158,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,158,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* === LAYOUT === */
+  .app-shell { position: relative; z-index: 1; min-height: 100vh; }
+
+  /* === SIDEBAR === */
+  .sidebar {
+    position: fixed; left: 0; top: 0; height: 100vh; width: 240px; z-index: 100;
+    background: rgba(6,12,20,0.85);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 20px 0;
+    transition: width 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s ease;
+  }
+  .sidebar.collapsed { width: 64px; }
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .logo-mark {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff;
+    box-shadow: 0 0 20px rgba(59,158,255,0.3);
+  }
+  .logo-text { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; }
+  .logo-text span { color: var(--accent-blue); }
+
+  .nav-section { padding: 0 12px; margin-bottom: 8px; }
+  .nav-section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted);
+    padding: 0 8px; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: var(--radius-md);
+    cursor: pointer; transition: all 0.2s ease;
+    font-size: 13.5px; font-weight: 450; color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden;
+    border: 1px solid transparent;
+    position: relative;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: rgba(59,158,255,0.07); color: var(--text-primary); }
+  .nav-item.active {
+    background: rgba(59,158,255,0.12);
+    color: var(--accent-blue);
+    border-color: rgba(59,158,255,0.2);
+  }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 20px; background: var(--accent-blue);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px var(--accent-blue);
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto; background: var(--accent-violet);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 10px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border-radius: var(--radius-md);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .user-card:hover { background: rgba(255,255,255,0.04); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b9eff, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: white;
+    box-shadow: 0 0 12px rgba(59,158,255,0.3);
+  }
+  .user-info { overflow: hidden; }
+  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+  /* === MAIN CONTENT === */
+  .main-content {
+    margin-left: 240px;
+    min-height: 100vh;
+    transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+    padding: 0;
+  }
+  .main-content.expanded { margin-left: 64px; }
+
+  /* === TOP BAR === */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(6,12,20,0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    height: 56px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-subtitle { font-size: 12px; color: var(--text-muted); }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.2s ease; border: none; text-decoration: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+    color: white;
+    box-shadow: 0 0 20px rgba(59,158,255,0.25);
+  }
+  .btn-primary:hover { box-shadow: 0 0 30px rgba(59,158,255,0.4); transform: translateY(-1px); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+
+  /* === PAGE CONTENT === */
+  .page { padding: 28px; }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-desc { font-size: 14px; color: var(--text-secondary); }
+
+  /* === CARDS === */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .card:hover { border-color: var(--border-bright); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+  .card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59,158,255,0.3), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+  .card-value { font-size: 28px; font-weight: 800; line-height: 1; }
+  .card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* === SCORE RING === */
+  .score-ring { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring-value {
+    position: absolute;
+    font-size: 22px; font-weight: 800;
+    text-align: center;
+  }
+  .score-ring-label { position: absolute; bottom: -2px; font-size: 10px; color: var(--text-muted); }
+
+  /* === PROGRESS BAR === */
+  .progress-bar {
+    height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(59,158,255,0.5);
+  }
+
+  /* === SKILL BADGE === */
+  .skill-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .skill-badge:hover { border-color: var(--accent-blue); background: rgba(59,158,255,0.08); }
+  .skill-badge.high { border-color: rgba(16,217,138,0.3); color: var(--accent-emerald); background: rgba(16,217,138,0.06); }
+  .skill-badge.medium { border-color: rgba(245,158,11,0.3); color: var(--accent-amber); background: rgba(245,158,11,0.06); }
+  .skill-badge.low { border-color: rgba(244,63,94,0.3); color: var(--accent-rose); background: rgba(244,63,94,0.06); }
+
+  /* === TAG === */
+  .tag {
+    display: inline-flex; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .tag-blue { background: rgba(59,158,255,0.12); color: var(--accent-blue); }
+  .tag-violet { background: rgba(139,92,246,0.12); color: var(--accent-violet); }
+  .tag-emerald { background: rgba(16,217,138,0.12); color: var(--accent-emerald); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+  .tag-rose { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
+
+  /* === CHART BARS === */
+  .chart-bar-group { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+  .chart-bar {
+    flex: 1; border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--accent-blue), rgba(59,158,255,0.2));
+    transition: all 0.3s ease;
+    position: relative; cursor: pointer;
+  }
+  .chart-bar:hover { filter: brightness(1.2); }
+  .chart-bar::after {
+    content: attr(data-val);
+    position: absolute; bottom: calc(100% + 4px);
+    left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: var(--text-muted);
+    opacity: 0; transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .chart-bar:hover::after { opacity: 1; }
+
+  /* === TIMELINE DOT === */
+  .timeline { position: relative; }
+  .timeline-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+  .timeline-item::before {
+    content: ''; position: absolute;
+    left: 11px; top: 26px; bottom: 0; width: 1px;
+    background: var(--border);
+  }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-dot {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    border: 2px solid var(--border);
+    background: var(--bg-surface);
+  }
+  .timeline-dot.done { background: var(--accent-emerald); border-color: var(--accent-emerald); color: white; }
+  .timeline-dot.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white;
+    box-shadow: 0 0 12px rgba(59,158,255,0.4); animation: pulse 2s infinite; }
+  .timeline-dot.upcoming { background: var(--bg-elevated); }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 8px rgba(59,158,255,0.3); } 50% { box-shadow: 0 0 20px rgba(59,158,255,0.6); } }
+
+  /* === HEATMAP === */
+  .heatmap { display: flex; gap: 3px; }
+  .heatmap-col { display: flex; flex-direction: column; gap: 3px; }
+  .heatmap-cell {
+    width: 12px; height: 12px; border-radius: 2px;
+    background: rgba(255,255,255,0.05);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .heatmap-cell:hover { transform: scale(1.3); }
+  .heatmap-cell.l1 { background: rgba(59,158,255,0.2); }
+  .heatmap-cell.l2 { background: rgba(59,158,255,0.4); }
+  .heatmap-cell.l3 { background: rgba(59,158,255,0.65); }
+  .heatmap-cell.l4 { background: rgba(59,158,255,0.9); box-shadow: 0 0 4px rgba(59,158,255,0.4); }
+
+  /* === RADAR CHART (SVG) === */
+  .radar-wrapper { display: flex; align-items: center; justify-content: center; }
+
+  /* === CONSTELLATION === */
+  .constellation-wrapper {
+    position: relative; height: 320px;
+    background: radial-gradient(ellipse at center, rgba(59,158,255,0.05) 0%, transparent 70%);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .skill-node {
+    position: absolute; transform: translate(-50%,-50%);
+    cursor: pointer; transition: all 0.3s ease;
+  }
+  .skill-node-inner {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; text-align: center;
+    border: 2px solid;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s;
+  }
+  .skill-node:hover .skill-node-inner { transform: scale(1.2); }
+  .skill-node-label {
+    position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; white-space: nowrap; color: var(--text-secondary);
+  }
+  .constellation-line {
+    position: absolute; pointer-events: none;
+    stroke: rgba(59,158,255,0.15); stroke-width: 1;
+  }
+
+  /* === AI CHAT === */
+  .chat-container { display: flex; flex-direction: column; height: 360px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+  .chat-msg { display: flex; gap: 10px; max-width: 85%; }
+  .chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .chat-bubble {
+    padding: 10px 14px; border-radius: 14px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .chat-msg.ai .chat-bubble { background: rgba(59,158,255,0.1); border: 1px solid rgba(59,158,255,0.2); }
+  .chat-msg.user .chat-bubble { background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); }
+  .chat-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .chat-ai-avatar { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); animation: pulse 3s infinite; }
+  .chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+  .chat-input {
+    flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 9px 14px;
+    color: var(--text-primary); font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--accent-blue); }
+
+  /* === LANDING PAGE === */
+  .landing { min-height: 100vh; }
+
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 24px; text-align: center; position: relative;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,158,255,0.08); border: 1px solid rgba(59,158,255,0.2);
+    border-radius: 20px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: var(--accent-blue);
+    margin-bottom: 28px;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-cyan); animation: pulse 2s infinite; }
+
+  .hero-title {
+    font-size: clamp(40px, 7vw, 88px); font-weight: 900; line-height: 1.05;
+    letter-spacing: -0.03em; margin-bottom: 24px; max-width: 900px;
+  }
+  .hero-title .gradient-text {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan), var(--accent-violet));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px); color: var(--text-secondary); max-width: 560px;
+    margin-bottom: 40px; font-weight: 350; line-height: 1.7;
+  }
+
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 64px; }
+  .btn-hero-primary {
+    padding: 14px 28px; font-size: 15px; font-weight: 600;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-violet));
+    color: white; border: none; border-radius: 12px; cursor: pointer;
+    box-shadow: 0 0 40px rgba(59,158,255,0.3), 0 0 80px rgba(139,92,246,0.15);
+    transition: all 0.3s ease;
+  }
+  .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(59,158,255,0.5); }
+  .btn-hero-ghost {
+    padding: 14px 28px; font-size: 15px; font-weight: 500;
+    background: rgba(255,255,255,0.04); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 12px; cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-hero-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+
+  .hero-stats { display: flex; gap: 48px; justify-content: center; flex-wrap: wrap; }
+  .hero-stat-num { font-size: 28px; font-weight: 800; color: var(--accent-blue); }
+  .hero-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* === FLOATING CARDS === */
+  .floating-preview {
+    position: absolute;
+    background: rgba(10,18,32,0.9); border: 1px solid var(--border-bright);
+    border-radius: var(--radius-lg); padding: 16px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: floatCard 6s ease-in-out infinite;
+  }
+  @keyframes floatCard {
+    0%,100% { transform: translateY(0) rotate(var(--r,0deg)); }
+    50% { transform: translateY(-12px) rotate(var(--r,0deg)); }
+  }
+  .floating-preview.card-1 { top: 15%; right: 5%; --r: 3deg; width: 180px; animation-delay: 0s; }
+  .floating-preview.card-2 { bottom: 20%; left: 5%; --r: -2deg; width: 160px; animation-delay: 2s; }
+  .floating-preview.card-3 { top: 40%; right: 8%; --r: 1deg; width: 150px; animation-delay: 4s; }
+
+  /* === SECTION === */
+  .section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
+  .section-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-blue); margin-bottom: 16px; }
+  .section-title { font-size: clamp(28px, 4vw, 48px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; letter-spacing: -0.02em; }
+  .section-sub { font-size: 17px; color: var(--text-secondary); max-width: 560px; line-height: 1.7; margin-bottom: 56px; }
+
+  /* === FEATURE GRID === */
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .feature-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-xl); padding: 28px;
+    transition: all 0.3s ease; position: relative; overflow: hidden;
+  }
+  .feature-card:hover { border-color: var(--border-bright); transform: translateY(-4px); }
+  .feature-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(59,158,255,0.05), transparent 50%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .feature-card:hover::after { opacity: 1; }
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 12px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .feature-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .feature-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* === TESTIMONIALS === */
+  .testimonials { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .testimonial-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-xl); padding: 24px;
+  }
+  .stars { color: var(--accent-amber); font-size: 14px; margin-bottom: 12px; }
+  .testimonial-text { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; font-style: italic; }
+  .testimonial-author { display: flex; align-items: center; gap: 10px; }
+  .testimonial-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+  }
+  .t-name { font-size: 13px; font-weight: 600; }
+  .t-role { font-size: 11px; color: var(--text-muted); }
+
+  /* === SEPARATOR === */
+  .separator { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+  /* === MONO TEXT === */
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* === TOOLTIP === */
+  [data-tooltip] { position: relative; }
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+    background: rgba(10,18,32,0.95); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; white-space: nowrap;
+    color: var(--text-primary); pointer-events: none; z-index: 100;
+  }
+
+  /* === MOBILE MENU === */
+  .mobile-menu-btn {
+    display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--bg-surface); border: 1px solid var(--border);
+    align-items: center; justify-content: center; cursor: pointer;
+    font-size: 18px;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.mobile-open { transform: translateX(0); }
+    .main-content { margin-left: 0 !important; }
+    .mobile-menu-btn { display: flex; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .floating-preview { display: none; }
+    .hero { padding: 60px 16px; }
+  }
+  @media (max-width: 600px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .page { padding: 16px; }
+  }
+
+  /* === GLOW ANIMATIONS === */
+  .glow-blue { box-shadow: 0 0 20px rgba(59,158,255,0.2); }
+  .glow-violet { box-shadow: 0 0 20px rgba(139,92,246,0.2); }
+  .glow-emerald { box-shadow: 0 0 20px rgba(16,217,138,0.2); }
+
+  /* === LOADING SKELETON === */
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+  }
+
+  /* === INTERVIEW === */
+  .interview-stage {
+    background: radial-gradient(ellipse at center, rgba(59,158,255,0.06), transparent 60%);
+    border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px;
+    text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ai-orb {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan), var(--accent-violet));
+    margin: 0 auto 20px;
+    box-shadow: 0 0 40px rgba(59,158,255,0.4);
+    animation: orbPulse 3s ease-in-out infinite;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  @keyframes orbPulse {
+    0%,100% { box-shadow: 0 0 30px rgba(59,158,255,0.3); transform: scale(1); }
+    50% { box-shadow: 0 0 60px rgba(59,158,255,0.6), 0 0 100px rgba(139,92,246,0.2); transform: scale(1.04); }
+  }
+
+  /* === ROADMAP NODES === */
+  .roadmap-node {
+    display: flex; align-items: flex-start; gap: 16px; padding: 16px;
+    border-radius: var(--radius-lg); transition: all 0.2s; cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .roadmap-node:hover { background: rgba(59,158,255,0.05); border-color: var(--border); }
+  .roadmap-node.active { background: rgba(59,158,255,0.08); border-color: rgba(59,158,255,0.3); }
+  .roadmap-node-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .roadmap-connector {
+    width: 2px; height: 24px; background: var(--border);
+    margin-left: 35px; my-2;
+  }
+
+  /* === REPO CARD === */
+  .repo-card {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 16px; transition: all 0.2s;
+  }
+  .repo-card:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.04); }
+  .repo-lang-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* === OPPORTUNITY CARD === */
+  .opp-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; border-radius: var(--radius-md);
+    border: 1px solid var(--border); background: rgba(255,255,255,0.02);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .opp-card:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.04); }
+  .company-logo {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .match-pct { font-size: 18px; font-weight: 800; }
+  .match-high { color: var(--accent-emerald); }
+  .match-med { color: var(--accent-amber); }
+
+  /* === GALAXY CANVAS PLACEHOLDER === */
+  .galaxy-canvas {
+    width: 100%; height: 280px;
+    background: radial-gradient(ellipse at center, rgba(59,158,255,0.08) 0%, rgba(139,92,246,0.04) 40%, transparent 70%);
+    border-radius: var(--radius-xl); position: relative; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  /* === PARTICLES === */
+  .particle {
+    position: absolute; width: 2px; height: 2px; border-radius: 50%;
+    background: var(--accent-blue); opacity: 0.6;
+    animation: particleFloat linear infinite;
+  }
+  @keyframes particleFloat {
+    0% { transform: translate(0,0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translate(var(--dx,50px), var(--dy,-100px)); opacity: 0; }
+  }
+
+  /* === FOOTER === */
+  .footer {
+    border-top: 1px solid var(--border); padding: 48px 24px;
+    text-align: center; color: var(--text-muted); font-size: 13px;
+  }
+  .footer-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 40px; max-width: 1000px; margin: 0 auto 48px; text-align: left; }
+  .footer-col-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+  .footer-link { display: block; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 8px; transition: color 0.2s; }
+  .footer-link:hover { color: var(--text-secondary); }
+  @media (max-width: 700px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* === COUNTER ANIMATION === */
+  .counter { display: inline-block; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const skills = [
+  { name: 'React', level: 88, category: 'Frontend' },
+  { name: 'TypeScript', level: 82, category: 'Language' },
+  { name: 'Node.js', level: 74, category: 'Backend' },
+  { name: 'Python', level: 71, category: 'Language' },
+  { name: 'AWS', level: 55, category: 'Cloud' },
+  { name: 'GraphQL', level: 62, category: 'API' },
+  { name: 'Docker', level: 58, category: 'DevOps' },
+  { name: 'PostgreSQL', level: 68, category: 'Database' },
+  { name: 'System Design', level: 45, category: 'Architecture' },
+  { name: 'Testing', level: 61, category: 'Quality' },
+];
+
+const weeklyData = [65, 78, 55, 90, 82, 70, 95];
+const days = ['M','T','W','T','F','S','S'];
+
+const repos = [
+  { name: 'ai-portfolio-engine', stars: 234, lang: 'TypeScript', color: '#3178c6', desc: 'AI-powered portfolio generator', updated: '2h ago' },
+  { name: 'react-3d-visualizer', stars: 891, lang: 'JavaScript', color: '#f7df1e', desc: '3D data visualization library', updated: '1d ago' },
+  { name: 'devops-automation', stars: 156, lang: 'Python', color: '#3572A5', desc: 'Infrastructure automation toolkit', updated: '3d ago' },
+  { name: 'graphql-schema-gen', stars: 412, lang: 'TypeScript', color: '#3178c6', desc: 'Auto-generate GraphQL schemas', updated: '1w ago' },
+];
+
+const roadmapNodes = [
+  { icon: '⚛️', title: 'Advanced React Patterns', desc: 'Context, Suspense, Server Components', status: 'done', duration: '2w' },
+  { icon: '🏗️', title: 'System Design Fundamentals', desc: 'Distributed systems, CAP theorem, scaling', status: 'active', duration: '3w' },
+  { icon: '☁️', title: 'AWS Solutions Architect', desc: 'EC2, S3, Lambda, CloudFront', status: 'upcoming', duration: '4w' },
+  { icon: '🔐', title: 'Security Engineering', desc: 'Auth, OAuth, encryption, OWASP', status: 'upcoming', duration: '2w' },
+  { icon: '🤖', title: 'ML Engineering Basics', desc: 'TensorFlow, model deployment, MLOps', status: 'upcoming', duration: '5w' },
+];
+
+const interviewQuestions = [
+  { q: "Explain the difference between useEffect and useLayoutEffect in React.", cat: "React", diff: "Medium" },
+  { q: "Design a URL shortener service that handles 1 million requests/day.", cat: "System Design", diff: "Hard" },
+  { q: "Implement a debounce function in JavaScript without using lodash.", cat: "JavaScript", diff: "Easy" },
+  { q: "How would you optimize a slow SQL query on a table with 50M rows?", cat: "Database", diff: "Hard" },
+];
+
+const opportunities = [
+  { company: 'Vercel', role: 'Senior Frontend Engineer', match: 94, emoji: '▲', color: '#fff' },
+  { company: 'Stripe', role: 'Staff React Developer', match: 88, emoji: '💳', color: '#6772e5' },
+  { company: 'Linear', role: 'Frontend Architect', match: 82, emoji: '◆', color: '#5e6ad2' },
+  { company: 'Notion', role: 'Full Stack Engineer', match: 79, emoji: '📐', color: '#fff' },
+];
+
+const testimonials = [
+  { text: "DevOS completely changed how I approach my career. The AI roadmap generator gave me a 6-month plan that landed me a senior role at Google.", author: "Sarah Chen", role: "Senior SWE @ Google", avatar: "SC", bg: "linear-gradient(135deg,#4285f4,#0d47a1)" },
+  { text: "The skill gap analysis is terrifyingly accurate. It identified exactly the 3 areas holding me back, and within 90 days I doubled my interview success rate.", author: "Marcus Rodriguez", role: "Staff Engineer @ Meta", avatar: "MR", bg: "linear-gradient(135deg,#0668E1,#003DA8)" },
+  { text: "I've tried 20+ career tools. None comes close to DevOS. The GitHub analyzer alone gave me insights that took weeks to discover manually.", author: "Priya Sharma", role: "Principal Engineer @ Stripe", avatar: "PS", bg: "linear-gradient(135deg,#6772e5,#3d3d9e)" },
+];
+
+// ═══════════════════════════════════════════════════════════
+// COMPONENTS
+// ═══════════════════════════════════════════════════════════
+
+function AnimatedCounter({ target, duration = 2000, suffix = '' }) {
+  const [val, setVal] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const tick = (now) => {
+          const t = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - t, 3);
+          setVal(Math.floor(ease * target));
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.3 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [target, duration]);
+  return <span ref={ref} className="counter">{val.toLocaleString()}{suffix}</span>;
+}
+
+function ScoreRing({ score, color, size = 90, stroke = 7 }) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (score / 100) * circ;
+  return (
+    <div className="score-ring" style={{ width: size, height: size }}>
+      <svg width={size} height={size}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ filter: `drop-shadow(0 0 6px ${color})`, transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)' }}/>
+      </svg>
+      <div className="score-ring-value" style={{ color }}>{score}</div>
+    </div>
+  );
+}
+
+function RadarChart({ data, size = 200 }) {
+  const center = size / 2;
+  const radius = size * 0.38;
+  const n = data.length;
+  const points = data.map((d, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    const r = (d.value / 100) * radius;
+    return { x: center + r * Math.cos(angle), y: center + r * Math.sin(angle), lx: center + (radius + 22) * Math.cos(angle), ly: center + (radius + 22) * Math.sin(angle), label: d.label };
+  });
+  const polyPts = points.map(p => `${p.x},${p.y}`).join(' ');
+  const gridLevels = [0.25, 0.5, 0.75, 1.0];
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {gridLevels.map(l => {
+        const gpts = data.map((_, i) => {
+          const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+          return `${center + l * radius * Math.cos(angle)},${center + l * radius * Math.sin(angle)}`;
+        }).join(' ');
+        return <polygon key={l} points={gpts} fill="none" stroke="rgba(99,179,237,0.1)" strokeWidth="1"/>;
+      })}
+      {data.map((_, i) => {
+        const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+        return <line key={i} x1={center} y1={center} x2={center + radius * Math.cos(angle)} y2={center + radius * Math.sin(angle)} stroke="rgba(99,179,237,0.1)" strokeWidth="1"/>;
+      })}
+      <polygon points={polyPts} fill="rgba(59,158,255,0.15)" stroke="#3b9eff" strokeWidth="2" style={{ filter: 'drop-shadow(0 0 8px rgba(59,158,255,0.4))' }}/>
+      {points.map((p, i) => (
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="3" fill="#3b9eff" style={{ filter: 'drop-shadow(0 0 4px #3b9eff)' }}/>
+          <text x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle" fill="#7fa8c9" fontSize="9" fontWeight="500">{p.label}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function Heatmap() {
+  const weeks = 26;
+  const levels = () => {
+    const r = Math.random();
+    if (r > 0.8) return 'l4';
+    if (r > 0.6) return 'l3';
+    if (r > 0.4) return 'l2';
+    if (r > 0.25) return 'l1';
+    return '';
+  };
+  const data = useRef(Array.from({ length: weeks }, () => Array.from({ length: 7 }, levels)));
+  return (
+    <div className="heatmap" style={{ overflowX: 'auto', paddingBottom: 4 }}>
+      {data.current.map((week, wi) => (
+        <div key={wi} className="heatmap-col">
+          {week.map((lvl, di) => (
+            <div key={di} className={`heatmap-cell ${lvl}`} data-tooltip={`${wi * 7 + di + 1} commits`}/>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GalaxyCanvas() {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const W = canvas.width, H = canvas.height;
+    const nodes = skills.map((s, i) => ({
+      x: 80 + (i % 5) * ((W - 160) / 4) + (Math.random() - 0.5) * 30,
+      y: 60 + Math.floor(i / 5) * ((H - 100) / 2) + (Math.random() - 0.5) * 20,
+      r: 6 + (s.level / 100) * 12,
+      label: s.name, level: s.level,
+      vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+    }));
+
+    let animId;
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+
+      // Connections
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 200) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.strokeStyle = `rgba(59,158,255,${0.15 * (1 - dist/200)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Nodes
+      nodes.forEach(n => {
+        const colors = ['#3b9eff','#8b5cf6','#10d98a','#00d4ff','#f59e0b'];
+        const col = colors[Math.floor(n.level / 20)];
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+        grad.addColorStop(0, col); grad.addColorStop(1, col + '44');
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 12; ctx.shadowColor = col;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#7fa8c9'; ctx.font = '9px Inter';
+        ctx.textAlign = 'center'; ctx.fillText(n.label, n.x, n.y + n.r + 12);
+
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 20 || n.x > W - 20) n.vx *= -1;
+        if (n.y < 20 || n.y > H - 20) n.vy *= -1;
+      });
+
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(animId);
+  }, []);
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }}/>;
+}
+
+function ConstellationMap() {
+  const positions = [
+    { x: 50, y: 25, level: 88, name: 'React', col: '#3b9eff' },
+    { x: 75, y: 40, level: 82, name: 'TypeScript', col: '#3178c6' },
+    { x: 25, y: 45, level: 74, name: 'Node.js', col: '#10d98a' },
+    { x: 60, y: 65, level: 71, name: 'Python', col: '#f59e0b' },
+    { x: 30, y: 70, level: 55, name: 'AWS', col: '#f97316' },
+    { x: 80, y: 70, level: 62, name: 'GraphQL', col: '#e040fb' },
+    { x: 15, y: 25, level: 58, name: 'Docker', col: '#0db7ed' },
+    { x: 48, y: 82, level: 68, name: 'PostgreSQL', col: '#336791' },
+  ];
+  const lines = [[0,1],[0,2],[1,3],[2,3],[3,4],[3,5],[1,5],[2,4]];
+  return (
+    <div className="constellation-wrapper">
+      <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }}>
+        {lines.map(([a,b], i) => (
+          <line key={i}
+            x1={`${positions[a].x}%`} y1={`${positions[a].y}%`}
+            x2={`${positions[b].x}%`} y2={`${positions[b].y}%`}
+            stroke="rgba(59,158,255,0.15)" strokeWidth="1.5"
+            strokeDasharray="4 4"/>
+        ))}
+      </svg>
+      {positions.map((p, i) => (
+        <div key={i} className="skill-node" style={{ left:`${p.x}%`, top:`${p.y}%` }}>
+          <div className="skill-node-inner" style={{
+            background: p.col + '22', borderColor: p.col,
+            color: p.col, boxShadow: `0 0 12px ${p.col}44`,
+            fontSize: p.level > 75 ? '12px' : '10px',
+            width: 12 + p.level * 0.28 + 'px', height: 12 + p.level * 0.28 + 'px'
+          }}>
+            {p.level}
+          </div>
+          <div className="skill-node-label">{p.name}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════════
+const navItems = [
+  { icon: '⬡', label: 'Dashboard', id: 'dashboard' },
+  { icon: '◎', label: 'Skill Analyzer', id: 'skills', badge: '3' },
+  { icon: '📄', label: 'Resume AI', id: 'resume' },
+  { icon: '⬡', label: 'GitHub Insights', id: 'github' },
+  { icon: '🗺️', label: 'Growth Roadmap', id: 'roadmap' },
+  { icon: '🎤', label: 'Interview Sim', id: 'interview' },
+  { icon: '🚀', label: 'Career Command', id: 'career' },
+];
+
+function Sidebar({ active, onNav, collapsed, onCollapse, mobileOpen }) {
+  return (
+    <div className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
+      <div className="sidebar-logo">
+        <div className="logo-mark">D</div>
+        {!collapsed && <div className="logo-text">Dev<span>OS</span></div>}
+      </div>
+
+      <div className="nav-section">
+        {!collapsed && <div className="nav-section-label">Navigation</div>}
+        {navItems.map(item => (
+          <div key={item.id} className={`nav-item ${active === item.id ? 'active' : ''}`}
+            onClick={() => onNav(item.id)}>
+            <span className="nav-icon">{item.icon}</span>
+            {!collapsed && <span>{item.label}</span>}
+            {!collapsed && item.badge && <span className="nav-badge">{item.badge}</span>}
+          </div>
+        ))}
+      </div>
+
+      <div className="sidebar-footer">
+        <div className="user-card">
+          <div className="avatar">AK</div>
+          {!collapsed && (
+            <div className="user-info">
+              <div className="user-name">Alex Kim</div>
+              <div className="user-role">Senior Developer</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════════════════
+
+function Dashboard() {
+  const radarData = [
+    { label: 'Frontend', value: 88 }, { label: 'Backend', value: 74 },
+    { label: 'Cloud', value: 55 }, { label: 'Security', value: 42 },
+    { label: 'AI/ML', value: 38 }, { label: 'DevOps', value: 58 },
+  ];
+  const maxBar = Math.max(...weeklyData);
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Command Center</h1>
+        <p className="page-desc">Wednesday, June 10 • Your career momentum is <span style={{color:'var(--accent-emerald)'}}>↑ 18% this month</span></p>
+      </div>
+
+      {/* Score Cards */}
+      <div className="grid-4" style={{ marginBottom: 20 }}>
+        {[
+          { label: 'Career Health', score: 78, color: '#3b9eff', desc: 'Excellent trajectory' },
+          { label: 'AI Growth Score', score: 84, color: '#8b5cf6', desc: '+6 pts this week' },
+          { label: 'Job Readiness', score: 71, color: '#10d98a', desc: '2 gaps remaining' },
+          { label: 'Skill Momentum', score: 91, color: '#00d4ff', desc: '14d learning streak' },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ textAlign: 'center' }}>
+            <ScoreRing score={s.score} color={s.color} size={80} stroke={6}/>
+            <div style={{ marginTop: 10 }}>
+              <div className="card-label">{s.label}</div>
+              <div style={{ fontSize: 12, color: s.color, marginTop: 2 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        {/* Galaxy */}
+        <div className="card" style={{ gridColumn: 'span 1' }}>
+          <div className="card-label" style={{ marginBottom: 12 }}>Career Growth Universe</div>
+          <div className="galaxy-canvas">
+            <GalaxyCanvas />
+            <div style={{ position:'absolute', bottom:12, left:12, fontSize:11, color:'var(--text-muted)' }}>
+              ✦ Node size = skill level · Color = proficiency tier
+            </div>
+          </div>
+        </div>
+
+        {/* Radar + Activity */}
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          <div className="card">
+            <div className="card-label" style={{ marginBottom: 8 }}>Skill Profile</div>
+            <div className="radar-wrapper">
+              <RadarChart data={radarData} size={190}/>
+            </div>
+          </div>
+          <div className="card">
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+              <div className="card-label">Weekly Activity</div>
+              <span className="tag tag-emerald">+23% vs last week</span>
+            </div>
+            <div className="chart-bar-group">
+              {weeklyData.map((v, i) => (
+                <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                  <div className="chart-bar" style={{ width:'100%', height: `${(v/maxBar)*70}px` }} data-val={`${v} pts`}/>
+                  <span style={{ fontSize:10, color:'var(--text-muted)' }}>{days[i]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Contribution heatmap */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 16 }}>
+          <div>
+            <div className="card-label">Contribution History</div>
+            <div style={{ fontSize:13, color:'var(--text-secondary)' }}>847 contributions in the last 6 months</div>
+          </div>
+          <span className="tag tag-blue">🔥 14-day streak</span>
+        </div>
+        <Heatmap />
+      </div>
+
+      {/* Skills + Goals */}
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-label" style={{ marginBottom: 12 }}>Top Skills</div>
+          {skills.slice(0, 6).map(s => (
+            <div key={s.name} style={{ marginBottom: 12 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
+                <span style={{ fontSize:13, fontWeight:500 }}>{s.name}</span>
+                <span style={{ fontSize:12, color:'var(--text-muted)' }}>{s.level}%</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${s.level}%`,
+                  background: s.level >= 80 ? 'linear-gradient(90deg,#10d98a,#00d4ff)' :
+                               s.level >= 60 ? 'linear-gradient(90deg,#3b9eff,#8b5cf6)' :
+                               'linear-gradient(90deg,#f59e0b,#f43f5e)' }}/>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <div className="card-label" style={{ marginBottom: 12 }}>Achievements</div>
+          {[
+            { icon:'🏆', title:'Top 5% TypeScript Developer', desc:'Based on GitHub analysis', time:'2d ago', col:'#f59e0b' },
+            { icon:'⚡', title:'Speed Learner', desc:'Completed 3 courses in 7 days', time:'1w ago', col:'#3b9eff' },
+            { icon:'🎯', title:'Interview Ready', desc:'85% mock interview score', time:'2w ago', col:'#10d98a' },
+            { icon:'🌟', title:'Open Source Contributor', desc:'500+ stars earned', time:'3w ago', col:'#8b5cf6' },
+          ].map((a, i) => (
+            <div key={i} style={{ display:'flex', gap:12, marginBottom:14, alignItems:'flex-start' }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:`${a.col}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>
+                {a.icon}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, fontWeight:600 }}>{a.title}</div>
+                <div style={{ fontSize:12, color:'var(--text-muted)' }}>{a.desc}</div>
+              </div>
+              <span style={{ fontSize:11, color:'var(--text-muted)', whiteSpace:'nowrap' }}>{a.time}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SkillPage() {
+  const [selected, setSelected] = useState(null);
+  const gaps = [
+    { skill: 'Kubernetes', importance: 'Critical', effort: '6w', demand: 94 },
+    { skill: 'System Design', importance: 'High', effort: '8w', demand: 89 },
+    { skill: 'Machine Learning', importance: 'Medium', effort: '12w', demand: 76 },
+  ];
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Skill Gap Analyzer</h1>
+        <p className="page-desc">AI-mapped skill constellation • 10 skills analyzed</p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 16 }}>
+          <div>
+            <div className="card-label">AI Skill Constellation</div>
+            <p style={{ fontSize:13, color:'var(--text-secondary)' }}>Node size reflects mastery level. Click any node to explore.</p>
+          </div>
+          <span className="tag tag-violet">✦ Live map</span>
+        </div>
+        <ConstellationMap />
+        <div style={{ display:'flex', gap:8, marginTop:16, flexWrap:'wrap' }}>
+          {[['Expert (80+)', '#10d98a'], ['Proficient (60-79)', '#3b9eff'], ['Developing (40-59)', '#f59e0b'], ['Beginner (<40)', '#f43f5e']].map(([l, c]) => (
+            <div key={l} style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, color:'var(--text-secondary)' }}>
+              <div style={{ width:8, height:8, borderRadius:'50%', background:c }}/>
+              {l}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: 20 }}>
+        <div className="card">
+          <div className="card-label" style={{ marginBottom: 12 }}>Current Mastery</div>
+          {skills.map(s => (
+            <div key={s.name} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+              <span style={{ fontSize:12, width:90, color:'var(--text-secondary)', flexShrink:0 }}>{s.name}</span>
+              <div className="progress-bar" style={{ flex:1 }}>
+                <div className="progress-fill" style={{ width:`${s.level}%` }}/>
+              </div>
+              <span style={{ fontSize:12, color:'var(--text-muted)', width:30, textAlign:'right' }}>{s.level}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-label" style={{ marginBottom: 12 }}>Critical Skill Gaps</div>
+          <div style={{ background:'rgba(244,63,94,0.06)', border:'1px solid rgba(244,63,94,0.2)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginBottom:16 }}>
+            <div style={{ fontSize:12, color:'var(--accent-rose)', fontWeight:600, marginBottom:4 }}>⚠ AI Insight</div>
+            <div style={{ fontSize:13, color:'var(--text-secondary)' }}>Your current skill set matches 67% of Senior roles. Close 3 critical gaps to reach 90%+ match rate.</div>
+          </div>
+          {gaps.map((g, i) => (
+            <div key={i} style={{ background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', padding:'14px', marginBottom:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                <span style={{ fontSize:14, fontWeight:600 }}>{g.skill}</span>
+                <span className={`tag ${g.importance==='Critical'?'tag-rose':g.importance==='High'?'tag-amber':'tag-blue'}`}>{g.importance}</span>
+              </div>
+              <div style={{ display:'flex', gap:16, fontSize:12, color:'var(--text-muted)' }}>
+                <span>⏱ {g.effort} to learn</span>
+                <span>📈 {g.demand}% job demand</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-label" style={{ marginBottom: 12 }}>Skills by Category</div>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+          {skills.map(s => (
+            <div key={s.name} className={`skill-badge ${s.level>=80?'high':s.level>=60?'medium':'low'}`}>
+              <span>{s.name}</span>
+              <span style={{ opacity:0.7 }}>{s.level}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResumePage() {
+  const [score] = useState(72);
+  const improvements = [
+    { type: 'Critical', icon: '🚨', msg: 'Add quantified impact metrics to your last 3 roles', cat: 'Impact' },
+    { type: 'High', icon: '⚡', msg: 'Include "System Design" and "Distributed Systems" keywords', cat: 'ATS' },
+    { type: 'High', icon: '📊', msg: 'Skills section missing Kubernetes, Terraform, CI/CD', cat: 'Skills' },
+    { type: 'Medium', icon: '✍️', msg: 'Summary is generic — personalize for target companies', cat: 'Brand' },
+    { type: 'Low', icon: '🔗', msg: 'Add links to open-source projects and blog posts', cat: 'Links' },
+  ];
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Resume Intelligence Engine</h1>
+        <p className="page-desc">AI-powered resume analysis and optimization</p>
+      </div>
+      <div className="grid-3" style={{ marginBottom: 20 }}>
+        <div className="card" style={{ textAlign:'center' }}>
+          <div className="card-label">Overall Score</div>
+          <div style={{ margin:'16px 0' }}>
+            <ScoreRing score={72} color="#3b9eff" size={100} stroke={8}/>
+          </div>
+          <div style={{ fontSize:13, color:'var(--text-secondary)' }}>Above Average</div>
+        </div>
+        <div className="card" style={{ textAlign:'center' }}>
+          <div className="card-label">ATS Compatibility</div>
+          <div style={{ margin:'16px 0' }}>
+            <ScoreRing score={85} color="#10d98a" size={100} stroke={8}/>
+          </div>
+          <div style={{ fontSize:13, color:'var(--accent-emerald)' }}>Good</div>
+        </div>
+        <div className="card" style={{ textAlign:'center' }}>
+          <div className="card-label">Keyword Match</div>
+          <div style={{ margin:'16px 0' }}>
+            <ScoreRing score={58} color="#f59e0b" size={100} stroke={8}/>
+          </div>
+          <div style={{ fontSize:13, color:'var(--accent-amber)' }}>Needs Work</div>
+        </div>
+      </div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-label" style={{ marginBottom:12 }}>AI Recommendations</div>
+          {improvements.map((imp, i) => (
+            <div key={i} style={{ display:'flex', gap:12, padding:'12px 0', borderBottom: i < improvements.length-1 ? '1px solid var(--border)':'none' }}>
+              <div style={{ fontSize:20, flexShrink:0 }}>{imp.icon}</div>
+              <div style={{ flex:1 }}>
+                <div style={{ display:'flex', gap:8, marginBottom:4, alignItems:'center' }}>
+                  <span style={{ fontSize:13, fontWeight:600 }}>{imp.msg}</span>
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <span className={`tag ${imp.type==='Critical'?'tag-rose':imp.type==='High'?'tag-amber':imp.type==='Medium'?'tag-blue':'tag-emerald'}`}>{imp.type}</span>
+                  <span className="tag tag-violet">{imp.cat}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-label" style={{ marginBottom:12 }}>Resume Sections Analysis</div>
+          {[
+            { section:'Summary', score:60, note:'Generic, needs personalization' },
+            { section:'Experience', score:78, note:'Good, add metrics to 2 roles' },
+            { section:'Skills', score:65, note:'Missing 4 in-demand keywords' },
+            { section:'Education', score:90, note:'Well formatted' },
+            { section:'Projects', score:55, note:'Add GitHub links & impact data' },
+          ].map((s, i) => (
+            <div key={i} style={{ marginBottom:14 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                <span style={{ fontSize:13, fontWeight:500 }}>{s.section}</span>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:11, color:'var(--text-muted)' }}>{s.note}</span>
+                  <span style={{ fontSize:13, fontWeight:700, color: s.score>=80?'var(--accent-emerald)':s.score>=65?'var(--accent-blue)':'var(--accent-amber)' }}>{s.score}</span>
+                </div>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width:`${s.score}%` }}/>
+              </div>
+            </div>
+          ))}
+          <div style={{ background:'rgba(59,158,255,0.06)', border:'1px solid rgba(59,158,255,0.2)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginTop:16 }}>
+            <div style={{ fontSize:12, color:'var(--accent-blue)', fontWeight:600, marginBottom:4 }}>💡 AI Projection</div>
+            <div style={{ fontSize:13, color:'var(--text-secondary)' }}>Applying all recommendations would raise your score to ~91 and increase interview callbacks by an estimated 3.4×.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GitHubPage() {
+  const langs = [
+    { lang:'TypeScript', pct:48, color:'#3178c6' },
+    { lang:'JavaScript', pct:22, color:'#f7df1e' },
+    { lang:'Python', pct:18, color:'#3572A5' },
+    { lang:'CSS', pct:8, color:'#563d7c' },
+    { lang:'Other', pct:4, color:'#555' },
+  ];
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">GitHub Insights</h1>
+        <p className="page-desc">Repository ecosystem • @alexkim · 847 contributions</p>
+      </div>
+      <div className="grid-4" style={{ marginBottom:20 }}>
+        {[
+          { label:'Repositories', value:'34', icon:'📦', color:'#3b9eff' },
+          { label:'Total Stars', value:'1,693', icon:'⭐', color:'#f59e0b' },
+          { label:'Followers', value:'412', icon:'👥', color:'#8b5cf6' },
+          { label:'Contributions', value:'847', icon:'⚡', color:'#10d98a' },
+        ].map(s => (
+          <div key={s.label} className="card">
+            <div style={{ fontSize:24, marginBottom:8 }}>{s.icon}</div>
+            <div className="card-value" style={{ color:s.color, fontSize:22 }}>{s.value}</div>
+            <div className="card-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
+      <div className="grid-2" style={{ marginBottom:20 }}>
+        <div className="card">
+          <div className="card-label" style={{ marginBottom:16 }}>Language Distribution</div>
+          <div style={{ display:'flex', gap:8, marginBottom:16, height:12, borderRadius:6, overflow:'hidden' }}>
+            {langs.map(l => (
+              <div key={l.lang} style={{ width:`${l.pct}%`, background:l.color, height:'100%', transition:'width 1s ease' }}/>
+            ))}
+          </div>
+          {langs.map((l, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+              <div className="repo-lang-dot" style={{ background:l.color, flexShrink:0 }}/>
+              <span style={{ fontSize:13, flex:1 }}>{l.lang}</span>
+              <div className="progress-bar" style={{ flex:2 }}>
+                <div style={{ height:'100%', borderRadius:3, background:l.color, width:`${l.pct}%`, opacity:0.8 }}/>
+              </div>
+              <span style={{ fontSize:12, color:'var(--text-muted)', width:34, textAlign:'right' }}>{l.pct}%</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-label" style={{ marginBottom:16 }}>AI Repository Analysis</div>
+          {[
+            { label:'Code Quality', score:82 }, { label:'Documentation', score:54 },
+            { label:'Test Coverage', score:38 }, { label:'Commit Consistency', score:90 },
+          ].map((m, i) => (
+            <div key={i} style={{ marginBottom:14 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                <span style={{ fontSize:13 }}>{m.label}</span>
+                <span style={{ fontSize:13, fontWeight:700, color: m.score>=80?'var(--accent-emerald)':m.score>=60?'var(--accent-blue)':'var(--accent-amber)' }}>{m.score}/100</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width:`${m.score}%` }}/>
+              </div>
+            </div>
+          ))}
+          <div style={{ background:'rgba(244,63,94,0.06)', border:'1px solid rgba(244,63,94,0.2)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginTop:4 }}>
+            <div style={{ fontSize:12, fontWeight:600, color:'var(--accent-rose)', marginBottom:4 }}>⚡ Priority Action</div>
+            <div style={{ fontSize:13, color:'var(--text-secondary)' }}>Add README + tests to <span className="mono" style={{ color:'var(--accent-blue)' }}>react-3d-visualizer</span> — it has 891 stars but 0 test files.</div>
+          </div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-label" style={{ marginBottom:16 }}>Top Repositories</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          {repos.map((r, i) => (
+            <div key={i} className="repo-card">
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:600, color:'var(--accent-blue)', marginBottom:3 }} className="mono">
+                    {r.name}
+                  </div>
+                  <div style={{ fontSize:13, color:'var(--text-secondary)' }}>{r.desc}</div>
+                </div>
+                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                  <span style={{ fontSize:12, color:'var(--accent-amber)' }}>⭐ {r.stars}</span>
+                  <span style={{ fontSize:11, color:'var(--text-muted)' }}>{r.updated}</span>
+                </div>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <div className="repo-lang-dot" style={{ background:r.color }}/>
+                <span style={{ fontSize:12, color:'var(--text-muted)' }}>{r.lang}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RoadmapPage() {
+  const [activeNode, setActiveNode] = useState(1);
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Growth Roadmap</h1>
+        <p className="page-desc">AI-generated personalized path to Senior → Staff Engineer</p>
+      </div>
+      <div className="grid-2">
+        <div className="card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <div className="card-label">Learning Path</div>
+            <div style={{ display:'flex', gap:8 }}>
+              <span className="tag tag-emerald">1 done</span>
+              <span className="tag tag-blue">1 active</span>
+              <span className="tag tag-violet">3 upcoming</span>
+            </div>
+          </div>
+          <div className="timeline">
+            {roadmapNodes.map((node, i) => (
+              <div key={i} className={`roadmap-node ${activeNode === i ? 'active' : ''}`}
+                onClick={() => setActiveNode(i)}
+                style={{ marginBottom: i < roadmapNodes.length - 1 ? 0 : 0 }}>
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                  <div className={`timeline-dot ${node.status}`}>
+                    {node.status === 'done' ? '✓' : node.status === 'active' ? '●' : '○'}
+                  </div>
+                  {i < roadmapNodes.length - 1 && (
+                    <div style={{ width:2, height:24, background:'var(--border)', margin:'4px 0' }}/>
+                  )}
+                </div>
+                <div style={{ flex:1, paddingTop:2, paddingBottom: i < roadmapNodes.length - 1 ? 20 : 0 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:600, marginBottom:3 }}>
+                        {node.icon} {node.title}
+                      </div>
+                      <div style={{ fontSize:12, color:'var(--text-secondary)' }}>{node.desc}</div>
+                    </div>
+                    <span style={{ fontSize:11, color:'var(--text-muted)', flexShrink:0, marginLeft:8 }}>{node.duration}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+          <div className="card">
+            <div className="card-label" style={{ marginBottom:12 }}>Current Focus</div>
+            {roadmapNodes[activeNode] && (
+              <div>
+                <div style={{ fontSize:18, marginBottom:8 }}>{roadmapNodes[activeNode].icon}</div>
+                <div style={{ fontSize:16, fontWeight:700, marginBottom:6 }}>{roadmapNodes[activeNode].title}</div>
+                <div style={{ fontSize:13, color:'var(--text-secondary)', marginBottom:16 }}>{roadmapNodes[activeNode].desc}</div>
+                <div className="progress-bar" style={{ marginBottom:8 }}>
+                  <div className="progress-fill" style={{ width: roadmapNodes[activeNode].status==='done'?'100%':roadmapNodes[activeNode].status==='active'?'45%':'0%' }}/>
+                </div>
+                <div style={{ fontSize:12, color:'var(--text-muted)' }}>
+                  {roadmapNodes[activeNode].status==='done'?'Completed ✓':roadmapNodes[activeNode].status==='active'?'45% complete · ~3 weeks remaining':'Not started · ' + roadmapNodes[activeNode].duration + ' estimated'}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="card-label" style={{ marginBottom:12 }}>AI Coach Insights</div>
+            {[
+              { icon:'💡', text:'At your current pace, you\'ll be Staff-ready in ~6 months' },
+              { icon:'⚡', text:'System Design is your highest-leverage gap to close now' },
+              { icon:'🎯', text:'Your React + TS combo puts you in the top 15% of candidates' },
+            ].map((ins, i) => (
+              <div key={i} style={{ display:'flex', gap:10, marginBottom:12 }}>
+                <span style={{ fontSize:16 }}>{ins.icon}</span>
+                <span style={{ fontSize:13, color:'var(--text-secondary)' }}>{ins.text}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="card">
+            <div className="card-label" style={{ marginBottom:12 }}>Estimated Timeline</div>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ fontSize:32, fontWeight:800, color:'var(--accent-blue)' }}>6</div>
+              <div>
+                <div style={{ fontSize:14, fontWeight:600 }}>months to goal</div>
+                <div style={{ fontSize:12, color:'var(--text-muted)' }}>Target: Staff Engineer</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InterviewPage() {
+  const [active, setActive] = useState(null);
+  const [answer, setAnswer] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    if (answer.trim()) { setSubmitted(true); }
+  };
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">AI Interview Simulator</h1>
+        <p className="page-desc">Practice with an AI interviewer that gives real-time feedback</p>
+      </div>
+
+      {active === null ? (
+        <>
+          <div className="interview-stage" style={{ marginBottom:20 }}>
+            <div className="ai-orb">🤖</div>
+            <div style={{ fontSize:20, fontWeight:700, marginBottom:8 }}>Ready to practice?</div>
+            <div style={{ fontSize:14, color:'var(--text-secondary)', maxWidth:400, marginBottom:24 }}>
+              Choose a category below to start your AI-powered interview session. I'll ask questions, listen to your answers, and give detailed feedback.
+            </div>
+            <div style={{ display:'flex', gap:10, flexWrap:'wrap', justifyContent:'center' }}>
+              {['Algorithms', 'System Design', 'React / Frontend', 'Behavioral', 'Database'].map(cat => (
+                <button key={cat} className="btn btn-ghost" onClick={() => setActive(cat)}>{cat}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-label" style={{ marginBottom:16 }}>Question Bank Preview</div>
+            {interviewQuestions.map((q, i) => (
+              <div key={i} style={{ display:'flex', gap:12, padding:'12px 0', borderBottom: i < interviewQuestions.length-1 ? '1px solid var(--border)':'none' }}>
+                <span style={{ fontSize:12, color:'var(--text-muted)', paddingTop:2 }}>Q{i+1}</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, marginBottom:6 }}>{q.q}</div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <span className="tag tag-blue">{q.cat}</span>
+                    <span className={`tag ${q.diff==='Hard'?'tag-rose':q.diff==='Medium'?'tag-amber':'tag-emerald'}`}>{q.diff}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+            <div>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div className="ai-orb" style={{ width:44, height:44, fontSize:18, margin:0 }}>🤖</div>
+                <div>
+                  <div style={{ fontWeight:600 }}>DevOS AI Interviewer</div>
+                  <div style={{ fontSize:12, color:'var(--accent-emerald)' }}>● Live session · {active}</div>
+                </div>
+              </div>
+            </div>
+            <button className="btn btn-ghost" onClick={() => { setActive(null); setSubmitted(false); setAnswer(''); }}>End Session</button>
+          </div>
+
+          <div className="card" style={{ marginBottom:16 }}>
+            <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+              <span className="tag tag-blue">{active}</span>
+              <span className="tag tag-amber">Medium</span>
+              <span className="tag tag-violet">Question 1 of 5</span>
+            </div>
+            <div style={{ fontSize:16, fontWeight:600, lineHeight:1.5 }}>
+              {active === 'System Design'
+                ? 'Design a real-time collaborative code editor like VSCode Live Share. How would you handle operational transforms, conflict resolution, and scale to 10M users?'
+                : 'Explain the useEffect cleanup function. When would memory leaks occur without it, and describe a race condition you\'ve encountered in async useEffect.'}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-label" style={{ marginBottom:10 }}>Your Answer</div>
+            <textarea
+              value={answer}
+              onChange={e => setAnswer(e.target.value)}
+              placeholder="Type your answer here... Think through it step by step."
+              style={{ width:'100%', minHeight:140, background:'rgba(255,255,255,0.03)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', padding:'12px 16px', color:'var(--text-primary)', fontSize:13, resize:'vertical', outline:'none', lineHeight:1.6, fontFamily:'inherit' }}
+            />
+            <div style={{ display:'flex', justifyContent:'flex-end', marginTop:10 }}>
+              <button className="btn btn-primary" onClick={handleSubmit}>Submit Answer →</button>
+            </div>
+          </div>
+
+          {submitted && (
+            <div className="card" style={{ marginTop:16, border:'1px solid rgba(16,217,138,0.3)' }}>
+              <div style={{ display:'flex', gap:10, marginBottom:12 }}>
+                <div className="ai-orb" style={{ width:32, height:32, fontSize:14, margin:0 }}>🤖</div>
+                <div>
+                  <div style={{ fontWeight:600, marginBottom:2 }}>AI Feedback</div>
+                  <div style={{ fontSize:12, color:'var(--text-muted)' }}>Analyzing your response...</div>
+                </div>
+                <ScoreRing score={78} color="#10d98a" size={52} stroke={4}/>
+              </div>
+              {[
+                { icon:'✅', text:'Good mention of the core problem space. Strong technical vocabulary.' },
+                { icon:'⚡', text:'Missing: discuss Operational Transform (OT) vs CRDTs and their trade-offs.' },
+                { icon:'💡', text:'For scale: mention WebSocket load balancers, Redis pub/sub for broadcasting diffs, and CRDT merge strategies.' },
+              ].map((f, i) => (
+                <div key={i} style={{ display:'flex', gap:10, marginBottom:10, padding:'8px 12px', background:'rgba(255,255,255,0.02)', borderRadius:8 }}>
+                  <span>{f.icon}</span>
+                  <span style={{ fontSize:13, color:'var(--text-secondary)' }}>{f.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CareerPage() {
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Career Command</h1>
+        <p className="page-desc">Opportunity radar · trajectory simulator · priority engine</p>
+      </div>
+
+      <div className="grid-2" style={{ marginBottom:20 }}>
+        <div className="card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <div className="card-label">Opportunity Radar</div>
+            <span className="tag tag-emerald">4 matches</span>
+          </div>
+          {opportunities.map((o, i) => (
+            <div key={i} className="opp-card" style={{ marginBottom:10 }}>
+              <div className="company-logo" style={{ background:'rgba(255,255,255,0.06)', border:'1px solid var(--border)', fontSize:20 }}>{o.emoji}</div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:14, fontWeight:600 }}>{o.company}</div>
+                <div style={{ fontSize:12, color:'var(--text-secondary)' }}>{o.role}</div>
+              </div>
+              <div className="match-pct" style={{ color: o.match >= 90 ? 'var(--accent-emerald)' : 'var(--accent-blue)' }}>{o.match}%</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <div className="card-label" style={{ marginBottom:16 }}>Future Career Simulator</div>
+          <div style={{ background:'radial-gradient(ellipse at 30% 50%, rgba(59,158,255,0.08), transparent 60%)', border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', padding:'20px', marginBottom:16 }}>
+            <div style={{ fontSize:13, color:'var(--text-muted)', marginBottom:8 }}>Projected trajectory @ current growth rate</div>
+            <div style={{ display:'flex', gap:24, flexWrap:'wrap' }}>
+              {[
+                { label:'3 months', role:'Senior Dev', salary:'$165K', col:'#3b9eff' },
+                { label:'6 months', role:'Staff Engineer', salary:'$195K', col:'#8b5cf6' },
+                { label:'12 months', role:'Principal Engineer', salary:'$240K', col:'#10d98a' },
+              ].map((p, i) => (
+                <div key={i} style={{ textAlign:'center' }}>
+                  <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:4 }}>{p.label}</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:p.col, marginBottom:2 }}>{p.role}</div>
+                  <div style={{ fontSize:12, color:'var(--text-secondary)' }}>{p.salary}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            {[
+              { label:'Close System Design gap', impact:'+$22K salary', urgent:true },
+              { label:'AWS certification', impact:'+18% match rate', urgent:false },
+              { label:'Contribute to major OSS', impact:'+recruiter visibility', urgent:false },
+            ].map((a, i) => (
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 14px', background:'rgba(255,255,255,0.02)', borderRadius:8, border:'1px solid var(--border)' }}>
+                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                  {a.urgent && <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--accent-rose)', boxShadow:'0 0 6px var(--accent-rose)' }}/>}
+                  <span style={{ fontSize:13 }}>{a.label}</span>
+                </div>
+                <span style={{ fontSize:12, color:'var(--accent-emerald)' }}>{a.impact}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-label" style={{ marginBottom:16 }}>Weekly Priorities</div>
+        <div className="grid-3">
+          {[
+            { day:'Mon–Tue', task:'System Design: Complete "Designing Data-Intensive Applications" Ch. 5–7', priority:'High', done:true },
+            { day:'Wed–Thu', task:'LeetCode hard: 3 system design problems on distributed consensus', priority:'High', done:false },
+            { day:'Fri', task:'Mock interview with AI · review feedback · update resume', priority:'Medium', done:false },
+          ].map((w, i) => (
+            <div key={i} style={{ background:'rgba(255,255,255,0.02)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', padding:16, opacity: w.done ? 0.6 : 1 }}>
+              <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:6 }}>{w.day}</div>
+              <div style={{ fontSize:13, lineHeight:1.5, marginBottom:10, textDecoration: w.done ? 'line-through' : 'none', color: w.done ? 'var(--text-muted)' : 'var(--text-primary)' }}>{w.task}</div>
+              <span className={`tag ${w.priority==='High'?'tag-rose':'tag-blue'}`}>{w.priority}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// LANDING PAGE
+// ═══════════════════════════════════════════════════════════
+function Landing({ onEnter }) {
+  return (
+    <div className="landing">
+      {/* Hero */}
+      <div className="hero">
+        <div className="hero-eyebrow">✦ Your AI-powered career operating system</div>
+
+        <h1 className="hero-title">
+          Your career,<br/>
+          <span className="gradient-text">engineered by AI.</span>
+        </h1>
+
+        <p className="hero-sub">
+          Analyze skills, close gaps, ace interviews, and reach Staff Engineer faster — with an AI that knows exactly where you stand and where you're headed.
+        </p>
+
+        <div className="hero-cta">
+          <button className="btn-hero-primary" onClick={onEnter}>Enter DevOS →</button>
+          <button className="btn-hero-ghost">Watch 2-min demo</button>
+        </div>
+
+        <div className="hero-stats">
+          {[
+            { n: 23400, s: '+', label: 'developers growing' },
+            { n: 94, s: '%', label: 'placement rate' },
+            { n: 2.8, s: 'x', label: 'faster to promotion' },
+          ].map((s, i) => (
+            <div key={i} style={{ textAlign:'center' }}>
+              <div className="hero-stat-num">
+                {typeof s.n === 'number' && s.n > 100 ? <AnimatedCounter target={s.n} suffix={s.s}/> : `${s.n}${s.s}`}
+              </div>
+              <div className="hero-stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Floating preview cards */}
+        <div className="floating-preview card-1">
+          <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:8 }}>SKILL MATCH</div>
+          <div style={{ fontSize:24, fontWeight:800, color:'var(--accent-emerald)' }}>94%</div>
+          <div style={{ fontSize:11, color:'var(--text-secondary)', marginTop:4 }}>Vercel · Senior FE</div>
+          <div className="progress-bar" style={{ marginTop:8 }}>
+            <div className="progress-fill" style={{ width:'94%', background:'linear-gradient(90deg,#10d98a,#00d4ff)' }}/>
+          </div>
+        </div>
+        <div className="floating-preview card-2">
+          <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:8 }}>AI ROADMAP</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {['React ✓','System Design →','AWS'].map((s, i) => (
+              <div key={i} style={{ fontSize:12, display:'flex', gap:6, alignItems:'center' }}>
+                <div style={{ width:6, height:6, borderRadius:'50%', background: i===0?'var(--accent-emerald)':i===1?'var(--accent-blue)':'var(--border)' }}/>
+                <span style={{ color: i===2 ? 'var(--text-muted)' : 'var(--text-secondary)' }}>{s}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="floating-preview card-3">
+          <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:6 }}>INTERVIEW SCORE</div>
+          <ScoreRing score={85} color="#8b5cf6" size={60} stroke={5}/>
+        </div>
+      </div>
+
+      {/* Features */}
+      <div style={{ background: 'linear-gradient(180deg, var(--bg-void), var(--bg-deep))', padding:'0 0 20px' }}>
+        <div className="section">
+          <div className="section-eyebrow">Everything you need</div>
+          <h2 className="section-title">Built for developers<br/>serious about growth.</h2>
+          <p className="section-sub">Seven AI-powered modules that work together to accelerate your career trajectory.</p>
+
+          <div className="features-grid">
+            {[
+              { icon:'◎', bg:'rgba(59,158,255,0.12)', title:'Skill Gap Analyzer', desc:'AI maps your skills as a live constellation. Instantly see what\'s holding you back from your next role.' },
+              { icon:'🗺️', bg:'rgba(139,92,246,0.12)', title:'AI Growth Roadmap', desc:'Personalized learning paths generated by AI. Adaptive, milestone-based, and constantly updated.' },
+              { icon:'📄', bg:'rgba(16,217,138,0.12)', title:'Resume Intelligence', desc:'ATS scoring, keyword gaps, and actionable suggestions that increase interview callbacks by 3.4×.' },
+              { icon:'⬡', bg:'rgba(0,212,255,0.12)', title:'GitHub Analytics', desc:'Deep analysis of your repos, contribution patterns, code quality, and how they compare to top engineers.' },
+              { icon:'🎤', bg:'rgba(245,158,11,0.12)', title:'Interview Simulator', desc:'Practice with an AI that knows exactly what FAANG interviewers look for. Real-time feedback included.' },
+              { icon:'🚀', bg:'rgba(244,63,94,0.12)', title:'Career Command Center', desc:'Opportunity radar, salary projections, and priority actions — your career at a glance.' },
+            ].map((f, i) => (
+              <div key={i} className="feature-card">
+                <div className="feature-icon" style={{ background: f.bg }}>{f.icon}</div>
+                <div className="feature-title">{f.title}</div>
+                <div className="feature-desc">{f.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="separator"/>
+
+      {/* Testimonials */}
+      <div className="section">
+        <div className="section-eyebrow">Social proof</div>
+        <h2 className="section-title">Developers who leveled up.</h2>
+        <p className="section-sub">From mid-level to Staff. From stuck to accelerating. Real stories.</p>
+        <div className="testimonials">
+          {testimonials.map((t, i) => (
+            <div key={i} className="testimonial-card">
+              <div className="stars">★★★★★</div>
+              <div className="testimonial-text">"{t.text}"</div>
+              <div className="testimonial-author">
+                <div className="testimonial-avatar" style={{ background: t.bg, width:36,height:36,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:'white' }}>{t.avatar}</div>
+                <div>
+                  <div className="t-name">{t.author}</div>
+                  <div className="t-role">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{ textAlign:'center', padding:'80px 24px', background:'radial-gradient(ellipse at center, rgba(59,158,255,0.08) 0%, transparent 60%)' }}>
+        <h2 style={{ fontSize:'clamp(28px,4vw,48px)', fontWeight:800, letterSpacing:'-0.02em', marginBottom:16 }}>
+          Start building your<br/>
+          <span style={{ background:'linear-gradient(135deg,var(--accent-blue),var(--accent-violet))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>next-level career</span> today.
+        </h2>
+        <p style={{ fontSize:17, color:'var(--text-secondary)', marginBottom:40 }}>Join 23,000+ developers. Free to start.</p>
+        <button className="btn-hero-primary" onClick={onEnter}>Enter DevOS — Free →</button>
+      </div>
+
+      <footer className="footer">
+        <div className="footer-grid">
+          {[
+            { title:'Product', links:['Dashboard','Skill Analyzer','Resume AI','GitHub Insights','Roadmap','Interview Sim'] },
+            { title:'Resources', links:['Docs','Blog','Changelog','API','Status'] },
+            { title:'Company', links:['About','Careers','Press','Contact'] },
+            { title:'Legal', links:['Privacy','Terms','Security','Cookies'] },
+          ].map(col => (
+            <div key={col.title}>
+              <div className="footer-col-title">{col.title}</div>
+              {col.links.map(l => <a key={l} href="#" className="footer-link">{l}</a>)}
+            </div>
+          ))}
+        </div>
+        <div style={{ borderTop:'1px solid var(--border)', paddingTop:24 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, justifyContent:'center', marginBottom:8 }}>
+            <div className="logo-mark" style={{ width:24,height:24,fontSize:11 }}>D</div>
+            <span style={{ fontWeight:700, fontSize:14 }}>DevOS</span>
+          </div>
+          <div>© 2026 DevOS Inc. All rights reserved. Built with ❤️ for developers.</div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// APP SHELL
+// ═══════════════════════════════════════════════════════════
+function App() {
+  const [view, setView] = useState('landing');
+  const [activePage, setActivePage] = useState('dashboard');
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const pageMap = {
+    dashboard: { component: <Dashboard/>, title: 'Command Center', subtitle: 'Your career at a glance' },
+    skills:    { component: <SkillPage/>,  title: 'Skill Gap Analyzer', subtitle: 'AI Skill Constellation' },
+    resume:    { component: <ResumePage/>, title: 'Resume Intelligence', subtitle: 'AI-powered analysis' },
+    github:    { component: <GitHubPage/>, title: 'GitHub Insights', subtitle: '@alexkim · 34 repos' },
+    roadmap:   { component: <RoadmapPage/>, title: 'Growth Roadmap', subtitle: 'Senior → Staff Engineer' },
+    interview: { component: <InterviewPage/>, title: 'Interview Simulator', subtitle: 'AI Interviewer ready' },
+    career:    { component: <CareerPage/>, title: 'Career Command', subtitle: 'Opportunity radar live' },
+  };
+
+  const handleNav = (id) => {
+    setActivePage(id);
+    setMobileOpen(false);
+  };
+
+  if (view === 'landing') {
+    return (
+      <div className="app-shell">
+        <div className="aurora"/>
+        <div className="grid-overlay"/>
+        <Landing onEnter={() => setView('app')}/>
+      </div>
+    );
+  }
+
+  const current = pageMap[activePage];
+
+  return (
+    <div className="app-shell">
+      <div className="aurora"/>
+      <div className="grid-overlay"/>
+
+      {/* Mobile menu toggle */}
+      <div className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)}>
+        {mobileOpen ? '✕' : '☰'}
+      </div>
+
+      {/* Sidebar overlay for mobile */}
+      {mobileOpen && (
+        <div onClick={() => setMobileOpen(false)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }}/>
+      )}
+
+      <Sidebar
+        active={activePage}
+        onNav={handleNav}
+        collapsed={collapsed}
+        onCollapse={() => setCollapsed(!collapsed)}
+        mobileOpen={mobileOpen}
+      />
+
+      <div className={`main-content ${collapsed ? 'expanded' : ''}`}>
+        <div className="topbar">
+          <button className="btn btn-ghost" style={{ display:'none' }} onClick={() => setCollapsed(!collapsed)}>
+            ◀
+          </button>
+          <div>
+            <div className="topbar-title">{current.title}</div>
+            <div className="topbar-subtitle">{current.subtitle}</div>
+          </div>
+          <div className="topbar-right">
+            <button className="btn btn-ghost" style={{ fontSize:18, padding:'6px 10px' }}>🔔</button>
+            <button className="btn btn-primary" onClick={() => setView('landing')}>← Landing</button>
+          </div>
+        </div>
+
+        <div style={{ overflowY:'auto' }}>
+          {current.component}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+</body>
+</html>
